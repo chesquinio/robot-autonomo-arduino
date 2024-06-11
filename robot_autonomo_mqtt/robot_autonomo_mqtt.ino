@@ -3,13 +3,13 @@
 
 // MQTT Config
 
-const char mqtt_broker[]="iot.eclipse.org";
+const char mqtt_broker[]="";
 const int mqtt_port=1883;
 const char mqtt_user[]="";
 const char mqtt_pass[]="";
-const char mqtt_clientid[]="xxxxxxxxxx";
-const char mqtt_wifi_ssid[]="xxxxxxxxxxx";
-const char mqtt_wifi_pass[]="xxxxxxxxx";
+const char mqtt_clientid[]="";
+const char mqtt_wifi_ssid[]="";
+const char mqtt_wifi_pass[]="";
 SoftwareSerial mqtt_esp8266_serial(3,2);
 ESP8266 mqtt_esp8266_wifi(&mqtt_esp8266_serial);
 char mqtt_payload[64];
