@@ -14,6 +14,7 @@ SoftwareSerial mqtt_esp8266_serial(3,2);
 ESP8266 mqtt_esp8266_wifi(&mqtt_esp8266_serial);
 char mqtt_payload[64];
 unsigned long task_time_ms=0;
+double work;
 
 double mqtt_payload2double(unsigned char *_payload, int _length){
   int i;
@@ -35,11 +36,14 @@ String mqtt_payload2string(unsigned char *_payload, int _length){
 void mqtt_callback(char* _topic, unsigned char* _payload, unsigned int _payloadlength){
   double v=mqtt_payload2double(_payload,_payloadlength);
   String vt=mqtt_payload2string(_payload,_payloadlength);
-  if(String(_topic).equals(String(String("Distancia/Frontal"))))EstadoLed=v;
+  if(String(_topic).equals(String(String("Funcionamiento/Encendido"))))work=v;
 }
 
 void mqtt_subscribe(){
+  ABlocksIOT.Subscribe(String(String("Movimientos/General")));
   ABlocksIOT.Subscribe(String(String("Distancia/Frontal")));
+  ABlocksIOT.Subscribe(String(String("Distancia/Izquierda")));
+  ABlocksIOT.Subscribe(String(String("Distancia/Derecha")));
 }
 
 // Pines setup
@@ -105,7 +109,7 @@ void setup() {
 void loop() {
   mqtt_esp8266_serial.listen(); ABlocksIOT.loop();
   
-  while(){
+  while((work == 1){
     if (obstacle_end == true) {
       Serial.println("Obstacle end maneuver started");
       movefront();
@@ -337,7 +341,10 @@ void movefront() {
   digitalWrite(motor1Pin2, LOW);
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW);
-  Serial.println("Moving Front");
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Movimientos/General"), String("Adelante"));
+  
+  // Serial.println("Moving Front");
 }
 
 void moveback() {
@@ -345,25 +352,36 @@ void moveback() {
   digitalWrite(motor1Pin2, HIGH);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, HIGH);
-  Serial.println("Moving Back");
+  
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Movimientos/General"), String("Atras"));
+
+  // Serial.println("Moving Back");
 }
 
 void moveleft() {
-  Serial.println("Turning left");
   digitalWrite(motor1Pin1, HIGH);
   digitalWrite(motor1Pin2, LOW);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, HIGH);
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Movimientos/General"), String("Izquierda"));
+  
+  // Serial.println("Turning left");
+
   delay(850);
   halt();
 }
 
 void moveright() {
-  Serial.println("Turning Right");
   digitalWrite(motor1Pin1, LOW);
   digitalWrite(motor1Pin2, HIGH);
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW);
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Movimientos/General"), String("Derecha"));
+
+  // Serial.println("Turning Right");
+
   delay(850);
   halt();
 }
@@ -373,7 +391,10 @@ void halt() {
   digitalWrite(motor1Pin2, LOW);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, LOW);
-  Serial.println("Stopped");
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Movimientos/General"), String("Freno"));
+
+  // Serial.println("Stopped");
 }
 
 void leftDistance() {
@@ -385,8 +406,11 @@ void leftDistance() {
   leftDuration = pulseIn(echo2, HIGH);
   leftdistance = leftDuration * 0.034 / 2;
   distance = leftdistance;
-  Serial.print("Left Distance: ");
-  Serial.println(leftdistance);
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Distancia/Izquierda"), String(distance));
+
+  // Serial.print("Left Distance: ");
+  // Serial.println(leftdistance);
 }
 
 void rightDistance() {
@@ -398,8 +422,11 @@ void rightDistance() {
   rightDuration = pulseIn(echo3, HIGH);
   rightdistance = rightDuration * 0.034 / 2;
   distance = rightdistance;
-  Serial.print("Right Distance: ");
-  Serial.println(rightdistance);
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Distancia/Derecha"), String(distance));
+
+  // Serial.print("Right Distance: ");
+  // Serial.println(rightdistance);
 }
 
 void frontDistance() {
@@ -411,6 +438,9 @@ void frontDistance() {
   frontDuration = pulseIn(echo1, HIGH);
   frontdistance = frontDuration * 0.034 / 2;
   distance = frontdistance;
-  Serial.print("Front Distance: ");
-  Serial.println(frontdistance);
+
+  mqtt_esp8266_serial.listen(); ABlocksIOT.Publish(String("Distancia/Frontal"), String(distance));
+
+  // Serial.print("Front Distance: ");
+  // Serial.println(frontdistance);
 }
